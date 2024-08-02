@@ -4,13 +4,15 @@ import os
 from google.cloud import translate_v2 as translate
 import vertexai
 from vertexai.preview.generative_models import GenerativeModel, Part
+import base64
+
+
 try:
     import io
     from io import BytesIO
     import pandas
 except Exception as e:
     print("Some Modules are missing {}". format(e))
-import base64
 
 def file_to_base64(file_path):
     # Read the file in binary mode
@@ -24,6 +26,7 @@ def file_to_base64(file_path):
     base64_encoded_str = base64_encoded_data.decode('utf-8')
     
     return base64_encoded_str
+
 app =flask.Flask(__name__)
 app.secret_key = 'supersecretkey'  # Required for flash messages
 
@@ -118,8 +121,9 @@ def upload_file():
         file.save(filepath)
         text = Part.from_data(mime_type= "application/pdf", data = file_to_base64(filepath))
     #Passing it through the model
-        PROJECT_ID = "friendly-block-430711-d9"
-        REGION = "us-central1"
+        PROJECT_ID = os.environ["PROJECT_ID"]
+        REGION = os.environ["REGION"]
+        
         vertexai.init(project=PROJECT_ID, location=REGION)
 
         generative_multimodal_model = GenerativeModel("gemini-1.5-pro-001")
@@ -136,5 +140,5 @@ def upload_file():
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0",port=3000)
 
